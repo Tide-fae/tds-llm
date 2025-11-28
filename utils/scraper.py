@@ -1,49 +1,59 @@
+import os
 import requests
 from openai import OpenAI
 
-client = OpenAI()
-
 def extract_text_from_url(url: str) -> str:
     """
-    Fetch HTML → send to OpenAI → return cleaned readable text.
+    Download webpage → send HTML to OpenAI → return cleaned text.
     """
 
-    # Step 1: Download webpage
+    # Ensure API key exists
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return "[Error: OPENAI_API_KEY is missing on server]"
+
+    # Create OpenAI client AFTER checking the API key
+    client = OpenAI(api_key=api_key)
+
+    # Step 1 — Download HTML
     try:
         response = requests.get(url, timeout=10)
         html = response.text
     except Exception as e:
         return f"[Error fetching URL: {e}]"
 
-    # Step 2: Use LLM to convert HTML → visible text
+    # Limit HTML size so LLM doesn’t choke
+    html = html[:20000]
+
+    # Step 2 — Ask OpenAI to extract readable text
     prompt = f"""
-You are an expert content extractor.
-Given HTML content, extract ONLY meaningful visible text.
+Extract ONLY meaningful readable text from the following HTML.
 
 Do NOT include:
 - HTML tags
-- CSS
-- JS
-- menus, footers, contact info
-- irrelevant repeated sections
+- CSS / JavaScript
+- headers, footers, menus
+- ads, buttons, navbars
+- duplicate content
 
-Return only clean readable text:
+Return plain text only.
 
-HTML:
-{html[:200000]}   # safety limit
+HTML content:
+{html}
 """
 
     try:
         completion = client.chat.completions.create(
             model="gpt-4.1",
             messages=[
-                {"role": "system", "content": "Extract clean text from HTML."},
+                {"role": "system", "content": "You extract visible text from webpages."},
                 {"role": "user", "content": prompt}
             ]
         )
 
         extracted = completion.choices[0].message["content"]
+
+        return extracted.strip()
+
     except Exception as e:
         return f"[LLM extraction error: {e}]"
-
-    return extracted.strip()
