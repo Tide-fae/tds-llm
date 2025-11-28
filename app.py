@@ -5,8 +5,8 @@ import os
 
 app = Flask(__name__)
 
-# This is the secret you verify for basic protection
-SERVER_SECRET = os.getenv("SERVER_SECRET", "abcd1234")
+# secret verification
+SERVER_SECRET = os.getenv("SERVER_SECRET", "tdsproject-secret")
 
 
 @app.route("/")
