@@ -2,7 +2,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-def solve_from_text(extracted_text: str):
+def solve_questions(extracted_text: str):
     """
     Use LLM to generate quiz answers / analysis
     based on extracted page text.
@@ -19,7 +19,7 @@ Your job:
 - Understand it
 - Create a helpful summary
 - Identify key points
-- Generate a set of quiz-style QA pairs (min 5)
+- Generate a set of quiz-style QA pairs (minimum 5)
 
 Extracted Text:
 {extracted_text}
